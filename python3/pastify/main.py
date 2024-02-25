@@ -16,7 +16,7 @@ class Pastify(object):
         self.nonce: str = token_urlsafe()
         self.config: Config = vim.exec_lua(
             'return require("pastify").getConfig()')
-        self.path: str = vim.exec_lua('return vim.fn.getcwd()')
+        self.path: str = vim.exec_lua("return vim.fn.expand('%:p:h')")
         self.filetype: str = vim.exec_lua('return vim.bo.filetype')
 
     def logger(
@@ -66,12 +66,15 @@ class Pastify(object):
         img_bytes = BytesIO()
         img.save(img_bytes, format="PNG")
         placeholder_text = ""
+        custom_placeholder = ""
+        image_path_name = self.get_image_path_name()
         if self.config['opts']['save'] == "local":
             if self.config['opts']['absolute_path']:
-                assets_path = f"{self.path}{self.get_image_path_name()}"
+                assets_path = f"{self.path}{image_path_name}"
             else:
-                assets_path = f".{self.get_image_path_name()}"
+                assets_path = f".{image_path_name}"
             placeholder_text = f"{assets_path}{file_name}.png"
+            custom_placeholder = f".{image_path_name}{file_name}.png"
             if not path.exists(assets_path):
                 makedirs(assets_path)
             img.save(placeholder_text, "PNG")
@@ -84,7 +87,7 @@ class Pastify(object):
 
         pattern = self.config['ft'][
             vim.exec_lua('return vim.bo.filetype')].replace(
-            "$IMG$", placeholder_text).replace("$NAME$", file_name)
+            "$IMG$", custom_placeholder).replace("$NAME$", file_name)
         vim.command(f"normal! i{pattern}")
 
     async def get_image(self, base64_text: str, placeholder_text: str) -> None:
