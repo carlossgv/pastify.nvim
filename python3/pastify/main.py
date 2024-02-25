@@ -84,7 +84,7 @@ class Pastify(object):
 
         pattern = self.config['ft'][
             vim.exec_lua('return vim.bo.filetype')].replace(
-            "$IMG$", placeholder_text)
+            "$IMG$", placeholder_text).replace("$NAME$", file_name)
         vim.command(f"normal! i{pattern}")
 
     async def get_image(self, base64_text: str, placeholder_text: str) -> None:
